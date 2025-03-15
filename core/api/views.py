@@ -20,9 +20,16 @@ from .serializers import UserSerializer, UserProfileSerializer
 
 
 class PostListView(generics.ListCreateAPIView):
-    queryset = Job.objects.all()
+    queryset = Job.objects.filter()
     serializer_class = DeviceSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    
+    def get(self, request, *args, **kwargs):
+        # モデルオブジェクトを取得
+        queryset = Job.objects.filter(user=self.request.user)
+        serializer = DeviceSerializer(instance=queryset, many=True)
+        return Response(serializer.data, status.HTTP_200_OK)
+
   
     def post(self, request, *args, **kwargs):
         # JSON文字列をレスポンスとして返す
