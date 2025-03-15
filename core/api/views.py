@@ -118,6 +118,7 @@ class UserLoginView(generics.GenericAPIView):
     serializer_class = UserSerializer
     permission_classes = (permissions.AllowAny,)
 
+    # ユーザー認証 (ログイン)
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
