@@ -11,6 +11,7 @@ class Post(models.Model):
         return self.title
 
 class Job(models.Model):    
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     company = models.CharField(max_length=100)
     place = models.CharField(max_length=100)
     status = models.CharField(max_length=100)

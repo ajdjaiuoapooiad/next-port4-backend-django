@@ -19,24 +19,23 @@ from .serializers import UserSerializer, UserProfileSerializer
 
 
 
-class TaskCreateListAPIView(views.APIView):
-  """ Taskモデルの登録API """
-  def get(self, request, *args, **kwargs):
-     """ Taskモデルの一覧取得API """
-     # 複数のobjectの場合、many=Trueを指定します
-    #  scrape_createJob()
-     serializer = DeviceSerializer(instance=Job.objects.all(), many=True)
-     return Response(serializer.data, status.HTTP_200_OK)
+class PostListView(generics.ListCreateAPIView):
+    queryset = Job.objects.all()
+    serializer_class = DeviceSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
   
-  def post(self, request, *args, **kwargs):
-    # JSON文字列をレスポンスとして返す
-    serializer = DeviceSerializer(data=request.data)
-    # バリデーション実行
-    serializer.is_valid(raise_exception=True)
-    # モデルオブジェクトを登録
-    serializer.save()
-    # JSON文字列をレスポンスとして返す
-    return Response(serializer.data, status.HTTP_201_CREATED)
+    def post(self, request, *args, **kwargs):
+        # JSON文字列をレスポンスとして返す
+        serializer = DeviceSerializer(data=request.data)
+        # バリデーション実行
+        serializer.is_valid(raise_exception=True)
+        # モデルオブジェクトを登録
+        serializer.save()
+        # JSON文字列をレスポンスとして返す
+        return Response(serializer.data, status.HTTP_201_CREATED)
 
 
 

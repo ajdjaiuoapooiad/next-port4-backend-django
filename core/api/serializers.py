@@ -8,14 +8,6 @@ from ..models import UserProfile
 #         model = Post 
 #         fields = ['id', 'title', 'status']
 
-class DeviceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Job
-        fields = ['id', 'company', 'place', 'status']
-
-
-
-
 
 # serializers.py
 class UserSerializer(serializers.ModelSerializer):
@@ -31,6 +23,17 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+class DeviceSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = Job
+        fields = ['id', 'user', 'company', 'place', 'status']
+
+
+
+
+
 
 class UserProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
