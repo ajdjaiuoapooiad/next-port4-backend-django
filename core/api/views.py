@@ -20,7 +20,6 @@ from .serializers import UserSerializer, UserProfileSerializer
 
 
 class PostListView(generics.ListCreateAPIView):
-    queryset = Job.objects.filter()
     serializer_class = DeviceSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     
