@@ -23,9 +23,6 @@ class PostListView(generics.ListCreateAPIView):
     queryset = Job.objects.all()
     serializer_class = DeviceSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
   
     def post(self, request, *args, **kwargs):
         # JSON文字列をレスポンスとして返す
@@ -33,7 +30,7 @@ class PostListView(generics.ListCreateAPIView):
         # バリデーション実行
         serializer.is_valid(raise_exception=True)
         # モデルオブジェクトを登録
-        serializer.save()
+        serializer.save(user=self.request.user)
         # JSON文字列をレスポンスとして返す
         return Response(serializer.data, status.HTTP_201_CREATED)
 
