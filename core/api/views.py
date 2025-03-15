@@ -9,6 +9,14 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+#User Login
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import UserSerializer, UserProfileSerializer
+
 
 
 class TaskCreateListAPIView(views.APIView):
@@ -100,101 +108,41 @@ class TaskRetrieveUpdataDestroyAPIView(views.APIView):
 
 
 
-# def scrape_and_save():
-#     amazonURL = 'https://scraping-for-beginner.herokuapp.com/ranking/'
 
-#     amazonPage = requests.get(amazonURL)
-#     soup = BeautifulSoup(amazonPage.text, "html.parser")
-#     data = []
-#     spots = soup.find_all('div', class_='u_areaListRankingBox row')
-#     # get_a = content.find_all('a')
-#     for spot in spots:
-#         spot_name = spot.find(class_='u_title col s12')
-#         spot_name.find('span').extract()
-#         spot_name = spot_name.text.replace('\n','')
-#         rank = float(spot.find(class_='evaluateNumber').text )
+class UserRegistrationView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (permissions.AllowAny,)
 
+class UserLoginView(generics.GenericAPIView):
+    serializer_class = UserSerializer
+    permission_classes = (permissions.AllowAny,)
 
-#         categoryItems = spot.find(class_='u_categoryTipsItem col s12')
-#         categoryItems = categoryItems.find_all('dl')
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
 
-#         details = {}
-#         for categoryItem in categoryItems:
-#             rank = float(categoryItem.dd.text)
-#             category = categoryItem.dt.text
-#             details[category] = rank
+        if user:
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }, status=status.HTTP_200_OK)
+        return Response({'error': 'Invalid Credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-#         detum = details
-#         detum['観光地名'] = spot_name
-#         detum['評点'] = rank
-#         data.append(detum)
-#         # print(details['楽しさ'])
-#         # jobs = Job.objects.create(spot = detum['観光地名'], rank = detum['評点'], acucess = detum['アクセス'], fun = detum['楽しさ'], many = detum['人混みの多さ'], view = detum['景色'])
- 
-#     return data
-#     # print(data[0]['楽しさ'])
+class UserProfileView(generics.RetrieveAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
-# def scrape(url):
-#     amazonURL = url
-
-#     amazonPage = requests.get(amazonURL)
-#     soup = BeautifulSoup(amazonPage.text, "html.parser")
-#     data = []
-#     spots = soup.find_all('div', class_='u_areaListRankingBox row')
-#     # get_a = content.find_all('a')
-#     for spot in spots:
-#         spot_name = spot.find(class_='u_title col s12')
-#         spot_name.find('span').extract()
-#         spot_name = spot_name.text.replace('\n','')
-#         rank = float(spot.find(class_='evaluateNumber').text )
-
-
-#         categoryItems = spot.find(class_='u_categoryTipsItem col s12')
-#         categoryItems = categoryItems.find_all('dl')
-
-#         details = {}
-#         for categoryItem in categoryItems:
-#             rank = float(categoryItem.dd.text)
-#             category = categoryItem.dt.text
-#             details[category] = rank
-
-#         detum = details
-#         detum['観光地名'] = spot_name
-#         detum['評点'] = rank
-#         data.append(detum)
-#         # print(details['楽しさ'])
-#         # jobs = Job.objects.create(spot = detum['観光地名'], rank = detum['評点'], acucess = detum['アクセス'], fun = detum['楽しさ'], many = detum['人混みの多さ'], view = detum['景色'])
- 
-#     return data
-#     # print(data[0]['楽しさ'])
+    def get_object(self):
+        return self.request.user.userprofile
+    
 
 
 
-# def scrape_jobs():
-#     amazonURL = 'https://www.wantedly.com/projects?new=true&page=1&occupationTypes=jp__engineering&hiringTypes=internship&areas=kyoto&order=mixed'
 
-#     amazonPage = requests.get(amazonURL)
-#     soup = BeautifulSoup(amazonPage.text, "html.parser")
-#     data = []
-#     spots = soup.find_all('li', class_='ProjectListJobPostsLaptop__ProjectListItem-sc-79m74y-12 irQOzL')
-#     for spot in spots:
-#         title = spot.find('h2', class_='ProjectListJobPostItem__TitleText-sc-bjcnhh-5 gCpJyB wui-reset wui-text wui-text-headline2').text
-#         company = spot.find('p', class_='JobPostCompanyWithWorkingConnectedUser__CompanyNameText-sc-1nded7v-5 hIALDA wui-reset wui-text wui-text-body2').text
-#         places = soup.find_all('ul', class_="ListWithMore__Ul-sc-1968quv-1 eKMonf")
-#         # place = places('li', class_="ListItem__Li-sc-1ty6hrk-0 ListItem__SelectableLi-sc-1ty6hrk-3 cTnFUW bcGmGW wui-reaction-by-color wui-reaction-overlay-black wui-text-body2 wui-listItem wui-listItem-dence")
-#         place = places[1].find('li', {'aria-selected': 'true'}).text
-        
-#         # print(title)
-#         # print(company)
-#         # print(place)
-#         detum = {
-#             'title': title,
-#             'company': company,
-#             'place': place,
-#         }
-#         data.append(detum)
-#     # print(data[0]['title'])
-#     return  data
+
 
 def scrape_jobs(url):
     amazonURL = url
